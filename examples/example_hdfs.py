@@ -36,25 +36,29 @@ deeplog = DeepLog(
 
 # Optionally cast data and DeepLog to cuda, if available
 if torch.cuda.is_available():
+    # 加载模型权重
+    model_path = './tmp_weight.pth'
+    deeplog.load_state_dict(torch.load(model_path))
+
     # Set deeplog to device
     deeplog = deeplog.to("cuda")
 
     # Set data to device
-    X_train        = X_train       .to("cuda")
-    y_train        = y_train       .to("cuda")
+    # X_train        = X_train       .to("cuda")
+    # y_train        = y_train       .to("cuda")
     X_test         = X_test        .to("cuda")
     y_test         = y_test        .to("cuda")
     X_test_anomaly = X_test_anomaly.to("cuda")
     y_test_anomaly = y_test_anomaly.to("cuda")
 
 # Train deeplog
-deeplog.fit(
-    X          = X_train,
-    y          = y_train,
-    epochs     = 10,
-    batch_size = 128,
-    optimizer  = torch.optim.Adam,
-)
+# deeplog.fit(
+#     X          = X_train,
+#     y          = y_train,
+#     epochs     = 10,
+#     batch_size = 128,
+#     optimizer  = torch.optim.Adam,
+# )
 
 # Predict normal data using deeplog
 y_pred_normal, confidence = deeplog.predict(

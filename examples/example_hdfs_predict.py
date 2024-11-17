@@ -9,6 +9,9 @@ from deeplog.preprocessor import Preprocessor
 import numpy as np
 from sklearn.metrics import classification_report
 
+# lkz import
+from datetime import datetime
+
 ##############################################################################
 #                                 Load data                                  #
 ##############################################################################
@@ -44,52 +47,75 @@ deeplog = DeepLog(
 )
 
 # Optionally cast data and DeepLog to cuda, if available
-if torch.cuda.is_available():
-    # Set deeplog to device
-    deeplog = deeplog.to("cuda")
+# if torch.cuda.is_available():
+#     # Set deeplog to device
+#     deeplog = deeplog.to("cuda")
 
-    # Set data to device
-    X_train = X_train.to("cuda")
-    y_train = y_train.to("cuda")
-    X_test  = X_test .to("cuda")
-    y_test  = y_test .to("cuda")
+#     # Set data to device
+#     X_train = X_train.to("cuda")
+#     y_train = y_train.to("cuda")
+#     X_test  = X_test .to("cuda")
+#     y_test  = y_test .to("cuda")
 
-# Train deeplog
-deeplog.fit(
-    X          = X_train,
-    y          = y_train,
-    epochs     = 10,
-    batch_size = 128,
-    optimizer  = torch.optim.Adam,
-)
+def main(k1):
+    # Train deeplog
+    # deeplog.fit(
+    #     X          = X_train,
+    #     y          = y_train,
+    #     epochs     = 5,
+    #     batch_size = 192,
+    #     optimizer  = torch.optim.Adam,
+    # )
 
-# Predict normal data using deeplog
-y_pred, confidence = deeplog.predict(
-    X = X_test,
-    k = 3, # Change this value to get the top k predictions (called 'g' in DeepLog paper, see Figure 6)
-)
+    # 保存模型权重
+    model_path = './tmp_weight.pth'
+    # torch.save(deeplog.state_dict(), model_path)
+    # return
+    deeplog.load_state_dict(torch.load(model_path))
 
-################################################################################
-#                            Classification report                             #
-################################################################################
+    # 格式化输出，精确到秒
+    now = datetime.now()
+    print(now.strftime("%Y-%m-%d %H:%M:%S"))
 
-# Transform to numpy for classification report
-y_true = y_test.cpu().numpy()
-y_pred = y_pred.cpu().numpy()
+    # Predict normal data using deeplog
+    y_pred, confidence = deeplog.predict(
+        X = X_test,
+        # 默认k=3
+        k = k1, # Change this value to get the top k predictions (called 'g' in DeepLog paper, see Figure 6)
+    )
 
-# Set prediction to "most likely" prediction
-prediction = y_pred[:, 0]
-# In case correct prediction was in top k, set prediction to correct prediction
-for column in range(1, y_pred.shape[1]):
-    # Get mask where prediction in given column is correct
-    mask = y_pred[:, column] == y_true
-    # Adjust prediction
-    prediction[mask] = y_true[mask]
 
-# Show classification report
-print(classification_report(
-    y_true = y_true,
-    y_pred = prediction,
-    digits = 4,
-    zero_division = 0,
-))
+    ################################################################################
+    #                            Classification report                             #
+    ################################################################################
+
+    # Transform to numpy for classification report
+    y_true = y_test.cpu().numpy()
+    y_pred = y_pred.cpu().numpy()
+
+    # Set prediction to "most likely" prediction
+    prediction = y_pred[:, 0]
+    # In case correct prediction was in top k, set prediction to correct prediction
+    for column in range(1, y_pred.shape[1]):
+        # Get mask where prediction in given column is correct
+        mask = y_pred[:, column] == y_true
+        # Adjust prediction
+        prediction[mask] = y_true[mask]
+
+    # Show classification report
+    print(classification_report(
+        y_true = y_true,
+        y_pred = prediction,
+        digits = 4,
+        zero_division = 0,
+    ))
+
+    # 格式化输出，精确到秒
+    now = datetime.now()
+    print(now.strftime("%Y-%m-%d %H:%M:%S"))
+
+
+
+if __name__ == "__main__":
+    main(3)
+    # main(9)
