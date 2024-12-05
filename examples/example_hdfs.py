@@ -105,6 +105,7 @@ anomalies_abnormal = ~torch.any(
 )
 
 # Compute classification report for anomalies
+# 这里的cat应该是拼接，即前后拼接起来，并不是类似字典压缩的合并（1维->2维）
 y_pred = torch.cat((anomalies_normal, anomalies_abnormal))
 y_true = torch.cat((
     torch.zeros(anomalies_normal  .shape[0], dtype=bool),

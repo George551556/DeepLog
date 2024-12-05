@@ -16,7 +16,7 @@ preprocessor = Preprocessor(
 # Load data from csv file
 # X, y, label, mapping = preprocessor.csv("<path/to/file.csv>")
 # Load data from txt file
-X, y, label, mapping = preprocessor.text("./data/lkz-for-predict.txt")
+X, y, label, mapping = preprocessor.text("D:\my_projects\python\DeepLog\examples\data\elec-op-data.txt")
 
 ##############################################################################
 #                                  DeepLog                                   #
@@ -35,7 +35,7 @@ deeplog = DeepLog(
 # y       = y      .to("cuda")
 
 # 加载模型权重
-model_path = './tmp_weight.pth'
+model_path = 'D:\my_projects\python\DeepLog\examples\\new_weight-elec.pth'
 # torch.save(deeplog.state_dict(), model_path)
 # return
 deeplog.load_state_dict(torch.load(model_path, map_location='cpu'))
@@ -51,10 +51,11 @@ deeplog.load_state_dict(torch.load(model_path, map_location='cpu'))
 # Predict using deeplog
 y_pred, confidence = deeplog.predict(
     X = X,
-    k = 9,
+    k = 3,
 )
 print('-----------------------------')
-print(y_pred.numpy())
+for i in range(15):
+    print(X.numpy()[i], y_pred.numpy()[i])
 print('shape: ', y_pred.numpy().shape)
 
 # [[10 13  3  8 14 12  4  0  7]
