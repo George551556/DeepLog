@@ -16,8 +16,10 @@ preprocessor = Preprocessor(
 # Load data from csv file
 # X, y, label, mapping = preprocessor.csv("<path/to/file.csv>")
 # Load data from txt file
-X, y, label, mapping = preprocessor.text("D:\my_projects\python\DeepLog\examples\data\elec-op-data.txt")
-
+X, y, label, mapping = preprocessor.text(
+    path = "D:\my_projects\python\DeepLog\examples\data\elec-op-data-testing.txt",
+    mapping= {i: i for i in range(0, 29)}
+)
 ##############################################################################
 #                                  DeepLog                                   #
 ##############################################################################
@@ -35,7 +37,7 @@ deeplog = DeepLog(
 # y       = y      .to("cuda")
 
 # 加载模型权重
-model_path = 'D:\my_projects\python\DeepLog\examples\\new_weight-elec.pth'
+model_path = 'D:\my_projects\python\DeepLog\examples\\new_weight-elec-oneline.pth'
 # torch.save(deeplog.state_dict(), model_path)
 # return
 deeplog.load_state_dict(torch.load(model_path, map_location='cpu'))
@@ -53,9 +55,24 @@ y_pred, confidence = deeplog.predict(
     X = X,
     k = 3,
 )
-print('-----------------------------')
-for i in range(15):
-    print(X.numpy()[i], y_pred.numpy()[i])
+print('------------------------------------')
+print('预测结果如下：(每行的第一个列表表示滑动窗口读入的真实数据，第二个列表为三个可能性依次降低的下一个事件ID)')
+for i in range(len(y_pred.numpy())):
+    if i<20:
+        continue # 跳过前20个元素的预测
+    isGood = False
+    if i==len(y_pred.numpy())-1:
+        print(X.numpy()[i], y_pred.numpy()[i])
+        continue
+    for j in range(len(y_pred.numpy()[i])):
+        if y_pred.numpy()[i][j]==X.numpy()[i+1][19]:
+            # 预测结果存在与真实值匹配的值
+            print(X.numpy()[i], y_pred.numpy()[i])
+            isGood = True
+            continue
+    if isGood==False:
+        print(X.numpy()[i], y_pred.numpy()[i], '预测异常')
+
 print('shape: ', y_pred.numpy().shape)
 
 # [[10 13  3  8 14 12  4  0  7]

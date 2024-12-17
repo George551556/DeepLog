@@ -26,7 +26,7 @@ var allOpCategories []string = []string{"com.fastbee.web.controller.system.SysDe
 func main() {
 	hash = make(map[string]int)
 	for id, item := range allOpCategories {
-		hash[item] = id + 1
+		hash[item] = id
 	}
 
 	files, err := getCsvFiles()
@@ -88,9 +88,6 @@ func getStateDigit(filepath string, targetidx int) {
 			return
 		}
 		msg := fmt.Sprintf("%d ", hash[line[targetidx]])
-		if sum%20 == 0 {
-			msg += "\n"
-		}
 		toTXT(filepath, msg)
 	}
 	log.Println("total", sum, "ops. ")

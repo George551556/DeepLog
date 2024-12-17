@@ -24,16 +24,17 @@ preprocessor = Preprocessor(
 
 # Load normal data from HDFS dataset
 X, y, label, mapping = preprocessor.text(
-    path    = "./data/hdfs_test_normal",
-    verbose = True,
+    path    = "./data/elec-data-oneline.txt",
+    verbose = False,
+    mapping = {i: i for i in range(0, 29)}
     # nrows   = 10_000, # Uncomment/change this line to only load a limited number of rows
 )
 
 # Split in train test data (20:80 ratio)
-X_train = X[:X.shape[0]//5 ]
-X_test  = X[ X.shape[0]//5:]
-y_train = y[:y.shape[0]//5 ]
-y_test  = y[ y.shape[0]//5:]
+X_train = X[:4*X.shape[0]//5 ]
+X_test  = X[ 4*X.shape[0]//5:]
+y_train = y[:4*y.shape[0]//5 ]
+y_test  = y[ 4*y.shape[0]//5:]
 
 ##############################################################################
 #                                  DeepLog                                   #
@@ -59,23 +60,19 @@ deeplog = DeepLog(
 
 def main(k1):
     # Train deeplog
-    # deeplog.fit(
-    #     X          = X_train,
-    #     y          = y_train,
-    #     epochs     = 5,
-    #     batch_size = 192,
-    #     optimizer  = torch.optim.Adam,
-    # )
+    deeplog.fit(
+        X          = X_train,
+        y          = y_train,
+        epochs     = 1000,
+        batch_size = 128,
+        optimizer  = torch.optim.Adam,
+    )
 
     # 保存模型权重
-    model_path = './tmp_weight.pth'
-    # torch.save(deeplog.state_dict(), model_path)
+    model_path = './new_weight-elec-oneline.pth'
+    torch.save(deeplog.state_dict(), model_path)
     # return
-    deeplog.load_state_dict(torch.load(model_path))
-
-    # 格式化输出，精确到秒
-    now = datetime.now()
-    print(now.strftime("%Y-%m-%d %H:%M:%S"))
+    # deeplog.load_state_dict(torch.load(model_path))
 
     # Predict normal data using deeplog
     y_pred, confidence = deeplog.predict(
@@ -109,12 +106,6 @@ def main(k1):
         digits = 4,
         zero_division = 0,
     ))
-
-    # 格式化输出，精确到秒
-    now = datetime.now()
-    print(now.strftime("%Y-%m-%d %H:%M:%S"))
-
-
 
 if __name__ == "__main__":
     main(3)
