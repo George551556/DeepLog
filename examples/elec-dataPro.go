@@ -58,6 +58,7 @@ func getCsvFiles() ([]string, error) {
 	return csvFiles, nil
 }
 
+// 根据传入的csv文件路径进行数据转换并写入同名的txt文件中，参数：（csv文件路径，目标数据列的位置）
 func getStateDigit(filepath string, targetidx int) {
 	sum := -1 //用于跳过第一行的表头
 	file, err := os.Open(fmt.Sprintf("./%s", filepath))
@@ -66,7 +67,7 @@ func getStateDigit(filepath string, targetidx int) {
 	}
 	defer file.Close()
 	reader := csv.NewReader(file)
-
+	msg := ""
 	for {
 		line, err := reader.Read()
 		if sum == -1 {
@@ -87,12 +88,19 @@ func getStateDigit(filepath string, targetidx int) {
 			fmt.Printf("category [ %s ] not existing...\n", line[targetidx])
 			return
 		}
-		msg := fmt.Sprintf("%d ", hash[line[targetidx]])
+		msg += fmt.Sprintf("%d ", hash[line[targetidx]])
+		if sum%50 == 0 {
+			toTXT(filepath, msg)
+			msg = ""
+		}
+	}
+	if msg != "" {
 		toTXT(filepath, msg)
 	}
 	log.Println("total", sum, "ops. ")
 }
 
+// 以追加方式写入文件
 func toTXT(filename string, content string) {
 	for i := range filename {
 		if filename[i] == '.' {
