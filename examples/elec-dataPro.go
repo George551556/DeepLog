@@ -94,14 +94,12 @@ func getStateDigit(filepath string, targetidx int) {
 			msg = ""
 		}
 	}
-	if msg != "" {
-		toTXT(filepath, msg)
-	}
-	log.Println("total", sum, "ops. ")
+	newFileName := toTXT(filepath, msg)
+	log.Println("total", sum, "ops into file", newFileName)
 }
 
-// 以追加方式写入文件
-func toTXT(filename string, content string) {
+// 以追加方式写入文件，并返回新文件名
+func toTXT(filename string, content string) string {
 	for i := range filename {
 		if filename[i] == '.' {
 			filename = filename[:i]
@@ -130,4 +128,5 @@ func toTXT(filename string, content string) {
 	if err != nil {
 		log.Fatalf("failed to flush file: %s", err)
 	}
+	return newFileName
 }
