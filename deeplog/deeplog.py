@@ -179,3 +179,80 @@ class DeepLog(Module):
             X.size(0)       ,
             self.hidden_size
         ).to(X.device)
+
+class MultiDimDeepLog(Module):
+
+    def __init__(self, input_size, hidden_size, output_size, num_layers=2, num_dimensions=1):
+        """MultiDimDeepLog model used for training and predicting multiple 1D logs.
+
+            Parameters
+            ----------
+            input_size : int
+                Dimension of input layer.
+
+            hidden_size : int
+                Dimension of hidden layer.
+
+            output_size : int
+                Dimension of output layer.
+
+            num_layers : int, default=2
+                Number of hidden layers, i.e. stacked LSTM modules.
+
+            num_dimensions : int, default=1
+                Number of 1D data dimensions to process.
+            """
+        super(MultiDimDeepLog, self).__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.output_size = output_size
+        self.num_layers = num_layers
+        self.num_dimensions = num_dimensions
+        self.deep_log_models = nn.ModuleList([DeepLog(input_size, hidden_size, output_size, num_layers) for _ in range(num_dimensions)])
+
+    def forward(self, x):
+        outputs = []
+        for i in range(self.num_dimensions):
+            outputs.append(self.deep_log_models[i](x[:, i, :]))
+        result=torch.stack(outputs, dim=1)
+        result=result.view(result.shape[0],self.num_dimensions,self.output_size)
+        return result
+
+    # predict方法
+    def predict(self, X, y=None, k=1, variable=False, verbose=True):
+        """Predict the k most likely output values
+
+            Parameters
+            ----------
+            X : torch.Tensor of shape=(n_samples, seq_len)
+                Input of sequences, these will be one-hot encoded to an array of
+                shape=(n_samples, seq_len, input_size)
+
+            y : Ignored
+                Ignored
+
+            k : int, default=1
+                Number of output items to generate
+
+            variable : boolean, default=False
+                If True, predict inputs of different sequence lengths
+
+            verbose : boolean, default=True
+                If True, print output
+
+            Returns
+            -------
+            result : torch.Tensor of shape=(n_samples, k)
+                k most likely outputs
+
+            confidence : torch.Tensor of shape=(n_samples, k)
+                Confidence levels for each output
+            """
+        # Get the predictions
+        result = super().predict(X, variable=variable, verbose=verbose)
+        # Get the probabilities from the log probabilities
+        result = result.exp()
+        # Compute k most likely outputs
+        confidence, result = result.topk(k)
+        # Return result
+        return result, confidence

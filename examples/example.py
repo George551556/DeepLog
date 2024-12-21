@@ -1,20 +1,22 @@
 import argparse
 import torch
 from deeplog              import DeepLog
+from deeplog              import MultiDimDeepLog
 from deeplog.preprocessor import Preprocessor
 
 def main():
     # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Run DeepLog model prediction.")
-    parser.add_argument(
-        "file_path",
-        type=str,
-        help="Relative path to the input txt file containing the dataset.",
-    )
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser(description="Run DeepLog model prediction.")
+    # parser.add_argument(
+    #     "file_path",
+    #     type=str,
+    #     default="D:\my_projects\Python\DeepLog\examples\data\elec-op-data-testing.txt",
+    #     help="Relative path to the input txt file containing the dataset.",
+    # )
+    # args = parser.parse_args()
 
     # Extract file path from arguments
-    file_path = args.file_path
+    file_path = "D:\my_projects\Python\DeepLog\examples\data\elec-op-data-testing.txt"
     ##############################################################################
     #                                 Load data                                  #
     ##############################################################################
@@ -36,7 +38,7 @@ def main():
     ##############################################################################
 
     # Create DeepLog object
-    deeplog = DeepLog(
+    deeplog = MultiDimDeepLog(
         input_size  = 30, # Number of different events to expect
         hidden_size = 64 , # Hidden dimension, we suggest 64
         output_size = 30, # Number of different events to expect
@@ -49,7 +51,7 @@ def main():
 
     # Load model weights
     model_path = './weight-elec.pth'
-    deeplog.load_state_dict(torch.load(model_path, map_location='cpu'))
+    # deeplog.load_state_dict(torch.load(model_path, map_location='cpu'))
 
     # Predict using deeplog
     y_pred, confidence = deeplog.predict(
