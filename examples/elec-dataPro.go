@@ -27,8 +27,9 @@ var allOpCategories []string = []string{"com.fastbee.web.controller.system.SysDe
 func main() {
 	args := os.Args[1:]
 	if len(args) < 2 || args[0] == "-h" {
-		fmt.Println("*****使用说明*****")
-		fmt.Println("参数1：待转换文件相对路径\n参数2：日志文件类型（1为物管平台操作日志，2为进程CPU使用率，3为****）")
+		fmt.Println("****************************")
+		fmt.Println("**********使用说明**********")
+		fmt.Println("参数1：待转换文件相对路径\n参数2：日志文件类型（1为物管平台操作日志，2为进程CPU使用率，3为进行占用网络带宽，4为进程错误量，5-保留）")
 		fmt.Println("模板：./elec-dataPro [ 参数1 ] [ 参数2 ]")
 		fmt.Println("示例：./elec-dataPro ./IOT-manage.csv 1")
 		return
@@ -42,6 +43,10 @@ func main() {
 		getStateDigit(args[0], 3)
 	} else if args[1] == "2" {
 		getCPUusageStateDigit(args[0], 0)
+	} else if args[1] == "3" {
+		getBandWidthDigit(args[0], 0)
+	} else if args[1] == "4" {
+		getProcErrorNums(args[0], 0)
 	} else {
 		fmt.Println("参数2 无效")
 	}
@@ -65,6 +70,122 @@ func getCsvFiles() ([]string, error) {
 	}
 
 	return csvFiles, nil
+}
+
+// 转换进程数量放缩并输出到同名txt文件，参数：（csv文件路径，目标数据列的位置）
+// 将数据放缩到0~100范围内，初步假设输入的数据范围为0~4500（函数中的bound值控制），将其值映射到0~100内
+func getProcErrorNums(filepath string, targetidx int) {
+	bound := 4500
+	if !isGoodFormat(filepath) {
+		log.Println(filepath, "错误的目标文件格式...")
+		return
+	}
+	clrTXT_file(filepath) //先清空目标的txt文件
+	sum := -1             //用于跳过第一行的表头
+	file, err := os.Open(filepath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	reader := csv.NewReader(file)
+	msg := ""
+	for {
+		line, err := reader.Read()
+		if sum == -1 {
+			sum++
+			continue
+		}
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			panic(err)
+		}
+		if targetidx >= len(line) {
+			panic("out of index...")
+		}
+		sum++
+
+		tmp, err := strconv.Atoi(line[targetidx])
+		if err != nil {
+			fmt.Println(line[targetidx], "float convert error")
+			panic(err)
+		}
+		tmp = min(tmp, bound-1)
+		tmp /= (bound / 100)
+		//对浮点百分比数据转换为整数**********************
+		msg += fmt.Sprintf("%v ", tmp)
+		if sum%50 == 0 {
+			toTXT(filepath, msg)
+			msg = ""
+		}
+	}
+	newFileName := toTXT(filepath, msg)
+	log.Println("total", sum, "ops into file", newFileName)
+}
+
+// 转换网络带宽B、KB值为整数并输出到同名txt文件，参数：（csv文件路径，目标数据列的位置）
+// 将数据放缩到0~100范围内，初步假设输入的数据范围为0~3000B（函数中的bound值控制），将其值映射到0~100内
+func getBandWidthDigit(filepath string, targetidx int) {
+	bound := 3000
+	if !isGoodFormat(filepath) {
+		log.Println(filepath, "错误的目标文件格式...")
+		return
+	}
+	clrTXT_file(filepath) //先清空目标的txt文件
+	sum := -1             //用于跳过第一行的表头
+	file, err := os.Open(filepath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	reader := csv.NewReader(file)
+	msg := ""
+	for {
+		line, err := reader.Read()
+		if sum == -1 {
+			sum++
+			continue
+		}
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			panic(err)
+		}
+		if targetidx >= len(line) {
+			panic("out of index...")
+		}
+		sum++
+		//对浮点百分比数据转换为整数**********************
+		dotId := 1
+		haveK := 1
+		for i := 0; i < len(line[targetidx]); i++ {
+			if line[targetidx][i] == 'K' {
+				dotId = i
+				haveK = 1000
+				break
+			} else if line[targetidx][i] == 'B' {
+				dotId = i
+				break
+			}
+		}
+		tmp, err := strconv.ParseFloat(line[targetidx][:dotId], 64)
+		if err != nil {
+			fmt.Println(line[targetidx], "float convert error")
+			panic(err)
+		}
+		tmp *= float64(haveK)
+		tmp /= float64(bound / 100)
+		tmp_1 := int(tmp)
+		tmp_1 = min(tmp_1, 99)
+		//对浮点百分比数据转换为整数**********************
+		msg += fmt.Sprintf("%v ", tmp_1)
+		if sum%50 == 0 {
+			toTXT(filepath, msg)
+			msg = ""
+		}
+	}
+	newFileName := toTXT(filepath, msg)
+	log.Println("total", sum, "ops into file", newFileName)
 }
 
 // 用于转换CPU使用率并输出到同名文件，参数：（csv文件路径，目标数据列的位置）
@@ -154,7 +275,7 @@ func getStateDigit(filepath string, targetidx int) {
 			return
 		}
 		msg += fmt.Sprintf("%d ", hash[line[targetidx]])
-		if sum%50 == 0 {
+		if sum%5 == 0 {
 			toTXT(filepath, msg)
 			msg = ""
 		}
