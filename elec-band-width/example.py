@@ -48,7 +48,7 @@ def main():
     # y       = y      .to("cuda")
 
     # Load model weights
-    model_path = './weight-cpu-usage.pth'
+    model_path = './weight-band-width.pth'
     deeplog.load_state_dict(torch.load(model_path, map_location='cpu'))
 
     # Predict using deeplog

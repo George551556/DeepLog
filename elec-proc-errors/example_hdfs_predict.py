@@ -24,7 +24,7 @@ preprocessor = Preprocessor(
 
 # Load normal data from HDFS dataset
 X, y, label, mapping = preprocessor.text(
-    path    = "./data/test-proc.txt",
+    path    = "./data/firefox_Errors.txt",
     verbose = False,
     mapping = {i: i for i in range(0, 99)}
     # nrows   = 10_000, # Uncomment/change this line to only load a limited number of rows
@@ -69,7 +69,7 @@ def main(k1):
     )
 
     # 保存模型权重
-    model_path = './weight-cpu-usage.pth'
+    model_path = './weight-proc-errors.pth'
     torch.save(deeplog.state_dict(), model_path)
     # return
     # deeplog.load_state_dict(torch.load(model_path))

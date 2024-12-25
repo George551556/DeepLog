@@ -110,8 +110,8 @@ func getProcErrorNums(filepath string, targetidx int) {
 			fmt.Println(line[targetidx], "float convert error")
 			panic(err)
 		}
-		tmp = min(tmp, bound-1)
 		tmp /= (bound / 100)
+		tmp = min(tmp, 98)
 		//对浮点百分比数据转换为整数**********************
 		msg += fmt.Sprintf("%v ", tmp)
 		if sum%50 == 0 {
