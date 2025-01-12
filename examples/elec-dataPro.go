@@ -27,11 +27,13 @@ var allOpCategories []string = []string{"com.fastbee.web.controller.system.SysDe
 func main() {
 	args := os.Args[1:]
 	if len(args) < 2 || args[0] == "-h" {
-		fmt.Println("****************************")
-		fmt.Println("**********使用说明**********")
-		fmt.Println("参数1：待转换文件相对路径\n参数2：日志文件类型（1为物管平台操作日志，2为进程CPU使用率，3为进行占用网络带宽，4为进程错误量，5-保留）")
-		fmt.Println("模板：./elec-dataPro [ 参数1 ] [ 参数2 ]")
-		fmt.Println("示例：./elec-dataPro ./IOT-manage.csv 1")
+		fmt.Println("*************************************************************")
+		fmt.Println("*************************使用说明****************************")
+		fmt.Println("功能\t：将脚本保存的csv格式数据转换为数字码并保存在源文件同目录与其同名的txt文件中")
+		fmt.Println("参数1\t：待转换文件路径\n参数2\t：日志文件类型（1为物管平台操作日志，2为进程CPU使用率，3为进程占用网络带宽，4为进程错误量，5-保留）")
+		fmt.Println("模板\t：elec-dataPro [     参数1     ] [     参数2     ]")
+		fmt.Println("示例\t：elec-dataPro ./IOT-manage.csv          1")
+		fmt.Println("*************************************************************")
 		return
 	}
 
@@ -48,7 +50,7 @@ func main() {
 	} else if args[1] == "4" {
 		getProcErrorNums(args[0], 0)
 	} else {
-		fmt.Println("参数2 无效")
+		fmt.Println("参数二 无效")
 	}
 }
 
