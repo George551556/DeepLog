@@ -1,14 +1,51 @@
 import argparse
 import torch
 import math
+import mysql.connector
+from datetime import datetime
 from deeplog              import DeepLog
 from deeplog.preprocessor import Preprocessor
+
+# 数据库配置信息
+db_config = {
+    'host': '127.0.0.1',       # 数据库主机地址
+    'user': 'use',   # 数据库用户名
+    'password': 'abc', # 数据库密码
+    'database': 'karen' # 数据库名
+}
+def add_data_to_mysql(db_config, sdpid, curScore, flag):
+    print('start insert into db...')
+    # 连接到MySQL数据库
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+    
+    # data Resolve
+    
+    curTime = datetime.now()
+    lastTime = datetime.now()
+    
+    # SQL 插入语句
+    sql = '''INSERT INTO elec_health (sdpid, curScore, curTime, lastTime, flag)
+             VALUES (%s, %s, %s, %s, %s)'''
+    
+    # 执行插入操作
+    cursor.execute(sql, (sdpid, curScore, curTime, lastTime, flag))
+    
+    # 提交事务
+    conn.commit()
+    
+    # 关闭游标和连接
+    cursor.close()
+    conn.close()
+
 
 def healthScore(t, f, logicFalse):
     logicT = t+f-logicFalse
     print('T/F :', t, f, '  logic T/F :', logicT, logicFalse)
     print('直接比例结果：%.2f'%(t/(t+f)))
     print('逻辑比例结果：%.2f'%(logicT/(t+f)))
+    
+    return round(t/(t+f)*100, 1), round(logicT/(t+f)*100, 1) # 返回百分制结果
     # numerator = math.exp(t)
     # denominator = numerator+math.exp(f)
     # print('逻辑比例结果：%.2f'%(numerator/denominator))
@@ -40,6 +77,11 @@ def main():
         path = file_path,
         mapping= {i: i for i in range(0, 99)}
     )
+    
+    # return when num of data is small
+    if len(X.numpy())<30:
+        print('有效数据不足')
+        return
 
     ##############################################################################
     #                                  DeepLog                                   #
@@ -105,7 +147,10 @@ def main():
                 logicFalse -= 1
                 break
 
-    healthScore(retTrue, retFalse, logicFalse)
+    # get health My Score
+    _, lgScore = healthScore(retTrue, retFalse, logicFalse)
+    # insert into db
+    add_data_to_mysql(db_config, 2, lgScore, 1)
     # print('shape: ', y_pred.numpy().shape)
 
 if __name__ == "__main__":

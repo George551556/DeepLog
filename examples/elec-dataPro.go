@@ -230,6 +230,9 @@ func getCPUusageStateDigit(filepath string, targetidx int) {
 		}
 		tmpDGT := line[targetidx][:dotId]
 		tmp_1 := convertIn100(tmpDGT)
+		if tmp_1 >= 99 {
+			tmp_1 = 98
+		}
 		//对浮点百分比数据转换为整数**********************
 		msg += fmt.Sprintf("%v ", tmp_1)
 		if sum%50 == 0 {
